@@ -142,29 +142,38 @@
             let initiativeData = [];
             let stats = {};
 
-            rows.forEach((row) => {
+          rows.forEach((row) => {
                 const cols = row.split(',');
-                if (cols.length < 4) return;
+                if (cols.length < 2) return; // Пропускаем пустые строки
                 
                 const id = cols[0].trim();
+                if (!id.startsWith('s')) return; // Пропускаем строки без правильного ID (например, заголовки)
+
                 const numId = id.replace('s', ''); 
-                const ownerNum = cols[1].trim();
+                const ownerNum = cols[1] ? cols[1].trim() : '0';
                 const progress = parseInt(cols[2]) || 0;
-                const building = cols[3].trim().toLowerCase();
+                const building = cols[3] ? cols[3].trim().toLowerCase() : "";
                 const initVal = cols[4] ? cols[4].trim() : "";
 
-                // Обновляем карту
+                // Обновляем карту ТОЛЬКО если нашли сектор
                 const rect = document.getElementById(id);
-                if (rect) rect.style.fill = teamColors[ownerNum] || teamColors['0'];
-                const bar = document.getElementById('p' + numId);
-                if (bar) bar.setAttribute("width", (progress / 100) * 70);
-                const bText = document.getElementById('b' + numId);
-                if (bText) bText.textContent = buildingsMap[building] || "";
+                if (rect) {
+                    // Если в таблице пусто, ставим серый, если цифра — цвет команды
+                    rect.style.fill = teamColors[ownerNum] || teamColors['0'];
+                    
+                    const bar = document.getElementById('p' + numId);
+                    if (bar) bar.setAttribute("width", (progress / 100) * 70);
+                    
+                    const bText = document.getElementById('b' + numId);
+                    if (bText) bText.textContent = buildingsMap[building] || "";
+                }
+                
+                // Собираем инициативу только если там реально число
+                if (initVal && teamColors[initVal] && initiativeData.length < 6) {
+                    initiativeData.push(initVal);
+                }
 
-                // Собираем данные инициативы (из колонки E)
-                if (initVal && initiativeData.length < 6) initiativeData.push(initVal);
-
-                // Считаем статистику
+                // Статистика
                 if (ownerNum !== '0' && teamColors[ownerNum]) {
                     if (!stats[ownerNum]) stats[ownerNum] = { total: 0, healed: 0 };
                     stats[ownerNum].total++;
