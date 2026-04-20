@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>LABORATORY MONITORING SYSTEM V3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap');
+
+        :root {
+            --bg-body: #f0f4f8;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #232f3e;
+            --border-color: #d1d9e0;
+            --team1: #ff5e57; /* Красные */
+            --team2: #54a0ff; /* Синие */
+            --team3: #1dd1a1; /* Зеленые */
+            --team0: #f8f9fa; /* Пусто */
+        }
+
+        body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Левая панель */
+        .sidebar { width: 350px; background: var(--card-bg); border-right: 1px solid var(--border-color); padding: 30px; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.05); }
+
+        .timer-section { text-align: center; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        #phase-name { font-size: 14px; font-weight: 700; color: #54a0ff; text-transform: uppercase; margin-bottom: 5px; }
+        #timer { font-size: 56px; font-weight: 700; color: #333; }
+
+        .section-title { font-size: 14px; font-weight: 700; margin: 20px 0 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
+
+        .team-legend-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; font-size: 15px; font-weight: 500; }
+        .color-circle { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
+
+        /* Карта */
+        .map-section { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .map-container { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid var(--border-color); }
+        svg { width: 750px; height: 750px; }
+
+        .sector-rect { fill: var(--team0); stroke: #e9ecef; stroke-width: 2; rx: 8; transition: all 0.5s ease; }
+        .building-icon { font-size: 24px; pointer-events: none; }
+        .progress-bg { fill: rgba(0,0,0,0.05); rx: 3; }
+        .progress-fill { fill: #1dd1a1; rx: 3; transition: width 0.6s ease; }
+        
+        /* Правая панель Инициативы */
+        .info-panel { width: 350px; background: var(--card-bg); border-left: 1px solid var(--border-color); padding: 30px; }
+        .init-row { 
+            display: flex; align-items: center; gap: 15px;
+            background: white; margin-bottom: 12px; padding: 15px;
+            border-radius: 14px; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            font-weight: 700;
+        }
+        .init-num { background: #eee; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="timer-section">
+            <div id="phase-name">Инициатива</div>
+            <div id="timer">01:00</div>
+        </div>
+
+        <div class="section-title">Легенда команд</div>
+        <div id="legend">
+            <div class="team-legend-item"><div class="color-circle" style="background: var(--team1)"></div> Команда №1</div>
+            <div class="team-legend-item"><div class="color-circle" style="background: var(--team2)"></div> Команда №2</div>
+            <div class="team-legend-item"><div class="color-circle" style="background: var(--team3)"></div> Команда №3</div>
+        </div>
+    </div>
+
+    <div class="map-section">
+        <div class="map-container">
+            <svg id="game-map" viewBox="0 0 800 800"></svg>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="section-title">Порядок ходов</div>
+        <div id="init-list">
+            </div>
+    </div>
+
+<script>
+    // --- ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ---
+    const spreadsheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTSTxc-u_9ZaHWCAw6uFvBGo8WMrZxNlSYX3aNsJG7DF8glDiNwVqUdGuQp2z2CzXWMedmpCSZl7vet/pub?output=csv'; 
+
+    const teamColors = { 
+        '0': '#f8f9fa', // Ничья
+        '1': '#ff5e57', // Красные
+        '2': '#54a0ff', // Синие
+        '3': '#1dd1a1'  // Зеленые
+    };
+    const buildingsMap = { 'шахта': '⚒️', 'лаба': '🧪', 'завод': '🏭', 'сигналка': '🛡️' };
+
+    // Генерация сетки
+    const svg = document.getElementById('game-map');
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const i = r * 8 + c + 1;
+            const x = c * 100; const y = r * 100;
+            const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            group.innerHTML = `
+                <rect id="s${i}" class="sector-rect" x="${x+3}" y="${y+3}" width="94" height="94"></rect>
+                <text id="b${i}" class="building-icon" x="${x+65}" y="${y+35}"></text>
+                <rect class="progress-bg" x="${x+15}" y="${y+80}" width="70" height="6"></rect>
+                <rect id="p${i}" class="progress-fill" x="${x+15}" y="${y+80}" width="0" height="6"></rect>
+            `;
+            svg.appendChild(group);
+        }
+    }
+
+    // Таймер этапов
+    const phases = [
+        { name: "Бросок Инициативы", time: 60 },
+        { name: "Обсуждение и Стратегия", time: 480 },
+        { name: "Фаза Атаки", time: 240 }
+    ];
+    let currentPhase = 0;
+    let timeLeft = phases[0].time;
+
+    setInterval(() => {
+        if (timeLeft > 0) { timeLeft--; } 
+        else { 
+            currentPhase = (currentPhase + 1) % phases.length; 
+            timeLeft = phases[currentPhase].time; 
+        }
+        document.getElementById('phase-name').innerText = phases[currentPhase].name;
+        let m = Math.floor(timeLeft / 60); let s = timeLeft % 60;
+        document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+    }, 1000);
+
+    // Обновление данных
+    async function updateGame() {
+        try {
+            const res = await fetch(spreadsheetUrl);
+            const text = await res.text();
+            const rows = text.split('\n').slice(1);
+            
+            // Чтобы обновить инициативу, мы будем брать её, например, из первых трех строк колонки E
+            let initiativeData = [];
+
+            rows.forEach((row, index) => {
+                const cols = row.split(',');
+                if (cols.length < 4) return;
+                
+                const id = cols[0].trim(); // s1
+                const numId = id.replace('s', ''); 
+                const ownerNum = cols[1].trim(); // Теперь тут "1", "2" или "3"
+                const progress = parseInt(cols[2]) || 0;
+                const building = cols[3].trim().toLowerCase();
+                const initTeam = cols[4] ? cols[4].trim() : ""; // Колонка E для инициативы
+
+                // 1. Красим сектор
+                const rect = document.getElementById(id);
+                if (rect) rect.style.fill = teamColors[ownerNum] || teamColors['0'];
+
+                // 2. Шкала лечения
+                const bar = document.getElementById('p' + numId);
+                if (bar) bar.setAttribute("width", (progress / 100) * 70);
+
+                // 3. Постройка
+                const bText = document.getElementById('b' + numId);
+                if (bText) bText.textContent = buildingsMap[building] || "";
+
+                // 4. Собираем инициативу (берем только первые 3 непустые записи из колонки E)
+                if (initTeam && initiativeData.length < 3) {
+                    initiativeData.push(initTeam);
+                }
+            });
+
+            // Обновляем список инициативы справа
+            const initList = document.getElementById('init-list');
+            initList.innerHTML = initiativeData.map((teamNum, idx) => `
+                <div class="init-row" style="border-left: 5px solid ${teamColors[teamNum]}">
+                    <div class="init-num">${idx + 1}</div>
+                    <div>Команда №${teamNum}</div>
+                </div>
+            `).join('');
+
+        } catch (e) { console.log("Ошибка данных"); }
+    }
+
+    setInterval(updateGame, 5000);
+    updateGame();
+</script>
+</body>
+</html>
