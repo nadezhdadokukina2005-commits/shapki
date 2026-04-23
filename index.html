@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>LABORATORY - WIDE VIEW</title>
+    <title>LABORATORY - FULLSCREEN VIEW</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         :root {
@@ -12,32 +12,31 @@
         }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Узкие боковые панели */
-        .sidebar, .info-panel { width: 240px; background: var(--card); padding: 20px; border: 1px solid #dce3e8; display: flex; flex-direction: column; z-index: 10; }
+        /* Панели */
+        .sidebar, .info-panel { width: 220px; background: var(--card); padding: 15px; border: 1px solid #dce3e8; display: flex; flex-direction: column; z-index: 10; }
         
-        /* Широкая секция карты */
-        .map-section { flex-grow: 1; display: flex; align-items: center; justify-content: flex-start; padding-left: 20px; background: #eaeff2; }
+        /* Секция карты: растягиваем по максимуму */
+        .map-section { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #eaeff2; overflow: hidden; }
         
-        /* Соотношение сторон теперь более вытянутое */
-        svg { width: 95%; height: 90vh; max-width: 1100px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.08)); }
+        svg { width: 98%; height: 96vh; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1)); }
         
-        .sector { stroke: #fff; stroke-width: 2; rx: 10; transition: 0.3s; }
-        .coord-label { font-size: 18px; fill: #94a3b8; font-weight: 900; }
+        .sector { stroke: #fff; stroke-width: 2; rx: 8; transition: 0.3s; }
+        .coord-label { font-size: 20px; fill: #94a3b8; font-weight: 900; }
         .id-label { font-size: 11px; fill: rgba(0,0,0,0.3); font-weight: 900; pointer-events: none; }
         
-        /* Текст построек */
-        .build-text { font-size: 15px; font-weight: 700; fill: #2d3436; }
-        .build-idx { font-size: 10px; font-weight: 900; fill: #2d3436; opacity: 0.8; }
+        .build-text { font-size: 16px; font-weight: 700; fill: #2d3436; }
+        .build-idx { font-size: 11px; font-weight: 900; fill: #2d3436; }
         
-        .progress-bar { height: 6px; fill: rgba(0,0,0,0.1); rx: 3; }
-        .progress-fill { height: 6px; fill: #ffffff; rx: 3; transition: 0.6s ease; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3)); }
+        .progress-bar { height: 6px; fill: rgba(0,0,0,0.12); rx: 3; }
+        .progress-fill { height: 6px; fill: #ffffff; rx: 3; transition: 0.6s ease; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4)); }
 
-        .section-title { font-size: 10px; font-weight: 900; letter-spacing: 1.5px; color: #64748b; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px; }
+        .section-title { font-size: 10px; font-weight: 900; letter-spacing: 1.2px; color: #64748b; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px; }
         
-        .rank-card { display: flex; align-items: center; justify-content: space-between; padding: 10px; margin-bottom: 8px; border-radius: 10px; background: #fff; border: 1px solid #edf2f7; }
-        .rank-info { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; }
-        .stat-main { font-size: 18px; font-weight: 900; color: #2d3748; }
-        .stat-sub { font-size: 8px; color: #a0aec0; text-transform: uppercase; text-align: right; }
+        /* Обновленный рейтинг без цифр */
+        .rank-card { display: flex; align-items: center; justify-content: space-between; padding: 12px; margin-bottom: 10px; border-radius: 12px; background: #fff; border: 1px solid #edf2f7; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .rank-info { font-weight: 800; font-size: 15px; color: #2d3748; }
+        .stat-main { font-size: 20px; font-weight: 900; color: #1a202c; text-align: right; }
+        .stat-sub { font-size: 9px; color: #a0aec0; text-transform: uppercase; text-align: right; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -48,7 +47,7 @@
 </div>
 
 <div class="map-section">
-    <svg id="map" viewBox="-70 -60 1150 750"></svg>
+    <svg id="map" viewBox="-80 -50 1150 730"></svg>
 </div>
 
 <div class="info-panel">
@@ -65,16 +64,15 @@
 
     const leg = document.getElementById('legend');
     for(let i=1; i<=6; i++) {
-        leg.innerHTML += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; font-weight:700; font-size:13px;">
-            <div style="width:10px; height:10px; border-radius:2px; background:${colors[i]}"></div> Команда №${i}
+        leg.innerHTML += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; font-weight:700; font-size:14px;">
+            <div style="width:12px; height:12px; border-radius:3px; background:${colors[i]}"></div> Команда №${i}
         </div>`;
     }
 
     const svg = document.getElementById('map');
-    // Сетка: ширина 135px, высота 85px (с отступами)
     for(let i=0; i<8; i++) {
-        svg.innerHTML += `<text x="${i*135 + 60}" y="-25" class="coord-label">${letters[i]}</text>`;
-        svg.innerHTML += `<text x="-55" y="${i*85 + 50}" class="coord-label">${i+1}</text>`;
+        svg.innerHTML += `<text x="${i*135 + 60}" y="-20" class="coord-label">${letters[i]}</text>`;
+        svg.innerHTML += `<text x="-60" y="${i*85 + 48}" class="coord-label">${i+1}</text>`;
     }
 
     for(let r=0; r<8; r++) {
@@ -123,17 +121,12 @@
                     if(item.gold > 0) items.push({icon: buildIcons.gold, count: item.gold});
                     if(item.chem > 0) items.push({icon: buildIcons.chem, count: item.chem});
 
-                    // Рисуем постройки в 2 строки
                     items.forEach((obj, idx) => {
                         const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                        // Позиция: 1-я и 2-я иконки сверху, 3-я и 4-я снизу
-                        const col = idx % 2;
-                        const row = Math.floor(idx / 2);
-                        const posX = parseInt(rect.getAttribute('x')) + 25 + (col * 55);
-                        const posY = parseInt(rect.getAttribute('y')) + 35 + (row * 22);
-                        
-                        t.setAttribute('x', posX);
-                        t.setAttribute('y', posY);
+                        const col = idx % 2; const row = Math.floor(idx / 2);
+                        const posX = parseInt(rect.getAttribute('x')) + 22 + (col * 58);
+                        const posY = parseInt(rect.getAttribute('y')) + 36 + (row * 24);
+                        t.setAttribute('x', posX); t.setAttribute('y', posY);
                         t.setAttribute('class', 'build-text');
                         t.innerHTML = `${obj.icon}<tspan class="build-idx" dy="-5">${obj.count > 1 ? 'x'+obj.count : ''}</tspan>`;
                         bContainer.appendChild(t);
@@ -142,10 +135,13 @@
             });
 
             const sorted = Object.keys(stats).sort((a,b) => stats[b].healed - stats[a].healed || stats[b].captured - stats[a].captured);
-            document.getElementById('rank-list').innerHTML = sorted.map((t, i) => `
-                <div class="rank-card" style="border-left: 5px solid ${colors[t]}">
-                    <div class="rank-info"><span>${i+1}</span>№${t}</div>
-                    <div><div class="stat-main">${stats[t].healed}</div><div class="stat-sub">Вылечено</div></div>
+            document.getElementById('rank-list').innerHTML = sorted.map((t) => `
+                <div class="rank-card" style="border-left: 6px solid ${colors[t]}">
+                    <div class="rank-info">Команда №${t}</div>
+                    <div>
+                        <div class="stat-main">${stats[t].healed}</div>
+                        <div class="stat-sub">Вылечено</div>
+                    </div>
                 </div>
             `).join('');
         } catch(e) {}
