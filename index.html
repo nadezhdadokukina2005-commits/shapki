@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>LABORATORY - ULTRA WIDE</title>
+    <title>LABORATORY - PROJECTOR READY</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         :root {
@@ -13,19 +13,18 @@
         * { box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* Панели - фиксированная ширина */
+        /* Фиксированные панели для проектора */
         .sidebar, .info-panel { 
-            width: 210px; 
-            min-width: 210px; 
+            width: 220px; 
+            min-width: 220px; 
             background: var(--card); 
-            padding: 15px; 
+            padding: 20px; 
             border: 1px solid #dce3e8; 
             display: flex; 
             flex-direction: column; 
             height: 100vh;
         }
         
-        /* Центральная часть с картой */
         .map-section { 
             flex: 1; 
             height: 100vh; 
@@ -33,33 +32,33 @@
             align-items: center; 
             justify-content: center; 
             background: #eaeff2; 
-            overflow: hidden; 
-            padding: 0; /* Убрали все отступы */
+            padding: 10px;
         }
         
-        /* SVG тянется на всю высоту */
+        /* Оптимизация SVG под формат экрана ноутбука */
         svg { 
+            width: 100%; 
             height: 100%; 
-            width: 90%; 
-            max-height: 110vh;
-            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1)); 
+            max-width: 100%;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.08)); 
         }
         
-        .sector { stroke: #fff; stroke-width: 2; rx: 4; transition: 0.3s; }
-        .coord-label { font-size: 24px; fill: #94a3b8; font-weight: 900; }
-        .id-label { font-size: 11px; fill: rgba(0,0,0,0.25); font-weight: 900; pointer-events: none; }
+        .sector { stroke: #fff; stroke-width: 2; rx: 5; transition: 0.3s; }
+        .coord-label { font-size: 22px; fill: #94a3b8; font-weight: 900; }
+        .id-label { font-size: 10px; fill: rgba(0,0,0,0.2); font-weight: 900; pointer-events: none; }
         
-        /* МАКСИМАЛЬНЫЕ ИКОНКИ */
-        .build-text { font-size: 24px; font-weight: 700; fill: #2d3436; }
-        .build-idx { font-size: 10px; font-weight: 900; fill: #2d3436; }
+        /* Иконки: размер и отступы */
+        .build-text { font-size: 20px; font-weight: 700; fill: #2d3436; }
+        .build-idx { font-size: 11px; font-weight: 900; fill: #2d3436; }
         
-        .progress-bar { height: 8px; fill: rgba(0,0,0,0.15); rx: 5; }
-        .progress-fill { height: 8px; fill: #ffffff; rx: 5; transition: 0.6s ease; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4)); }
+        /* Тонкая линия прогресса */
+        .progress-bar { height: 6px; fill: rgba(0,0,0,0.12); rx: 3; }
+        .progress-fill { height: 6px; fill: #ffffff; rx: 3; transition: 0.6s ease; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
 
         .section-title { font-size: 10px; font-weight: 900; letter-spacing: 1.2px; color: #64748b; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px; }
         
-        .rank-card { display: flex; align-items: center; justify-content: space-between; padding: 12px; margin-bottom: 8px; border-radius: 12px; background: #fff; border: 1px solid #edf2f7; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .rank-info { font-weight: 800; font-size: 14px; color: #2d3748; }
+        .rank-card { display: flex; align-items: center; justify-content: space-between; padding: 12px; margin-bottom: 8px; border-radius: 10px; background: #fff; border: 1px solid #edf2f7; }
+        .rank-info { font-weight: 800; font-size: 14px; }
         .stat-main { font-size: 24px; font-weight: 900; color: #1a202c; text-align: right; line-height: 1; }
         .stat-sub { font-size: 8px; color: #a0aec0; text-transform: uppercase; text-align: right; font-weight: 800; }
     </style>
@@ -72,7 +71,7 @@
 </div>
 
 <div class="map-section">
-    <svg id="map" viewBox="-85 -70 1150 750" preserveAspectRatio="xMidYMid meet"></svg>
+    <svg id="map" viewBox="-80 -50 1180 720" preserveAspectRatio="xMidYMid meet"></svg>
 </div>
 
 <div class="info-panel">
@@ -90,28 +89,27 @@
     const leg = document.getElementById('legend');
     for(let i=1; i<=6; i++) {
         leg.innerHTML += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; font-weight:800; font-size:14px;">
-            <div style="width:16px; height:16px; border-radius:4px; background:${colors[i]}"></div> Команда №${i}
+            <div style="width:14px; height:14px; border-radius:3px; background:${colors[i]}"></div> Команда №${i}
         </div>`;
     }
 
     const svg = document.getElementById('map');
-    // Координаты сетки
     for(let i=0; i<8; i++) {
-        svg.innerHTML += `<text x="${i*135 + 67}" y="-30" class="coord-label" text-anchor="middle">${letters[i]}</text>`;
-        svg.innerHTML += `<text x="-65" y="${i*85 + 50}" class="coord-label" text-anchor="end">${i+1}</text>`;
+        svg.innerHTML += `<text x="${i*135 + 67}" y="-20" class="coord-label" text-anchor="middle">${letters[i]}</text>`;
+        svg.innerHTML += `<text x="-65" y="${i*82 + 48}" class="coord-label" text-anchor="end">${i+1}</text>`;
     }
 
     for(let r=0; r<8; r++) {
         for(let c=0; c<8; c++) {
             const id = letters[c] + (r+1);
-            const x = c * 135; const y = r * 85;
+            const x = c * 135; const y = r * 82;
             const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
             g.innerHTML = `
-                <rect id="rect-${id}" class="sector" x="${x}" y="${y}" width="133" height="83" fill="${colors[0]}"></rect>
-                <text x="${x+5}" y="${y+14}" class="id-label">${id}</text>
+                <rect id="rect-${id}" class="sector" x="${x}" y="${y}" width="131" height="78" fill="${colors[0]}"></rect>
+                <text x="${x+5}" y="${y+13}" class="id-label">${id}</text>
                 <g id="builds-${id}"></g>
-                <rect class="progress-bar" x="${x+10}" y="${y+68}" width="113"></rect>
-                <rect id="prog-${id}" class="progress-fill" x="${x+10}" y="${y+68}" width="0"></rect>
+                <rect class="progress-bar" x="${x+12}" y="${y+66}" width="107"></rect>
+                <rect id="prog-${id}" class="progress-fill" x="${x+12}" y="${y+66}" width="0"></rect>
             `;
             svg.appendChild(g);
         }
@@ -136,7 +134,7 @@
                 }
 
                 const p = document.getElementById('prog-'+id);
-                if(p) p.setAttribute('width', (Math.min(item.progress, 100) / 100) * 113);
+                if(p) p.setAttribute('width', (Math.min(item.progress, 100) / 100) * 107);
                 
                 const bContainer = document.getElementById('builds-'+id);
                 if(bContainer) {
@@ -150,11 +148,13 @@
                     items.slice(0, 4).forEach((obj, idx) => {
                         const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
                         const col = idx % 2; const row = Math.floor(idx / 2);
-                        const posX = parseInt(rect.getAttribute('x')) + 15 + (col * 65);
-                        const posY = parseInt(rect.getAttribute('y')) + 38 + (row * 26);
+                        // Позиционирование строго внутри: x+25/x+80 для колонок
+                        const posX = parseInt(rect.getAttribute('x')) + 25 + (col * 55);
+                        const posY = parseInt(rect.getAttribute('y')) + 35 + (row * 24);
                         t.setAttribute('x', posX); t.setAttribute('y', posY);
                         t.setAttribute('class', 'build-text');
-                        t.innerHTML = `${obj.icon}<tspan class="build-idx" dy="-8">${obj.count > 1 ? 'x'+obj.count : ''}</tspan>`;
+                        t.setAttribute('text-anchor', 'middle');
+                        t.innerHTML = `${obj.icon}<tspan class="build-idx" dy="-6" dx="2">${obj.count > 1 ? 'x'+obj.count : ''}</tspan>`;
                         bContainer.appendChild(t);
                     });
                 }
